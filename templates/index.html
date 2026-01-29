@@ -1,0 +1,2825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>目标跟踪评测工具</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            background: var(--bg);
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        
+        .form-group input[type="text"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg);
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: #f0f7ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: #e0efff;
+        }
+        
+        .upload-area p {
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status-box {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .status-box h4 {
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        
+        .status-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        table th {
+            background: var(--bg);
+            font-weight: 600;
+        }
+        
+        table tr:hover {
+            background: var(--bg);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: normal;
+            font-size: 0.9rem;
+        }
+        
+        .checkbox-group label:hover {
+            background: #e2e8f0;
+        }
+        
+        .plot-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .plot-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .range-container input[type="range"] {
+            flex: 1;
+        }
+        
+        .range-container span {
+            min-width: 30px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .color-picker-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .color-picker-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg);
+            border-radius: 6px;
+        }
+        
+        .color-picker-item input[type="color"] {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        pre {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+        }
+        
+        .help-section {
+            margin-bottom: 25px;
+        }
+        
+        .help-section h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .help-section ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        
+        /* 可排序表格样式 */
+        .sortable-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .sortable-table th {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 25px;
+        }
+        
+        .sortable-table th:hover {
+            background: #e2e8f0;
+        }
+        
+        .sortable-table th::after {
+            content: '⇅';
+            position: absolute;
+            right: 8px;
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+        
+        .sortable-table th.sort-asc::after {
+            content: '↑';
+            color: var(--primary);
+        }
+        
+        .sortable-table th.sort-desc::after {
+            content: '↓';
+            color: var(--primary);
+        }
+        
+        .sortable-table td, .sortable-table th {
+            padding: 10px 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        
+        .sortable-table th {
+            background: var(--bg);
+            font-weight: 600;
+        }
+        
+        .sortable-table tbody tr:hover {
+            background: #f0f7ff;
+        }
+        
+        .sortable-table td:first-child {
+            text-align: left;
+            font-weight: 500;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 目标跟踪评测工具</h1>
+        <p>支持OTB和ORTrack评测方法 | 支持批量数据集和多算法评测</p>
+    </div>
+    
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" data-tab="upload">📤 数据上传</button>
+            <button class="tab" data-tab="evaluate">📊 评测</button>
+            <button class="tab" data-tab="visualize">📈 可视化</button>
+            <button class="tab" data-tab="drawbox">🖼️ 绘制跟踪框</button>
+            <button class="tab" data-tab="export">💾 导出</button>
+            <button class="tab" data-tab="help">❓ 帮助</button>
+        </div>
+        
+        <!-- 数据上传 -->
+        <div id="upload" class="tab-content active">
+            <!-- 序列列表上传（首先上传） -->
+            <div class="card" style="border-left: 4px solid var(--primary); background: linear-gradient(to right, #f0f7ff, #ffffff);">
+                <h2>📋 第一步：上传视频序列列表（推荐）</h2>
+                <p style="margin-bottom: 15px; color: var(--text-secondary);">
+                    首先上传每个数据集的视频序列名称列表，用于验证后续上传的GT、跟踪结果、属性是否完整。
+                    这一步是可选的，但强烈建议使用，以确保所有序列数据都正确上传。
+                </p>
+                
+                <div class="form-group">
+                    <label>上传模式</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="seqlist_mode" value="single" checked>
+                            单数据集（TXT文件，每行一个序列名）
+                        </label>
+                        <label>
+                            <input type="radio" name="seqlist_mode" value="batch">
+                            批量上传（ZIP包含多个TXT，以数据集名命名）
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="seqlist_dataset_name_group">
+                    <label>数据集名称 <span style="color: var(--danger);">*</span></label>
+                    <input type="text" id="seqlist_dataset_name" placeholder="例如: UAV123">
+                </div>
+                
+                <div class="upload-area" id="seqlist_upload_area">
+                    <div style="font-size: 2rem;">📋</div>
+                    <p>点击或拖拽上传TXT/ZIP文件</p>
+                    <p style="font-size: 0.85rem; margin-top: 5px;">单数据集: TXT文件 | 批量: ZIP文件</p>
+                </div>
+                <input type="file" id="seqlist_file" accept=".txt,.zip" style="display: none;">
+                
+                <button class="btn btn-primary" id="seqlist_upload_btn" style="margin-top: 15px; width: 100%;">
+                    上传序列列表
+                </button>
+                
+                <div id="seqlist_status"></div>
+            </div>
+            
+            <div class="grid-2">
+                <!-- Ground Truth上传 -->
+                <div class="card">
+                    <h2>📁 Ground Truth上传</h2>
+                    
+                    <div class="form-group">
+                        <label>上传模式</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="gt_mode" value="single" checked>
+                                单数据集
+                            </label>
+                            <label>
+                                <input type="radio" name="gt_mode" value="batch">
+                                批量上传
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="gt_dataset_name_group">
+                        <label>数据集名称 <span style="color: var(--danger);">*</span></label>
+                        <input type="text" id="gt_dataset_name" placeholder="例如: UAV123">
+                    </div>
+                    
+                    <div class="upload-area" id="gt_upload_area">
+                        <div style="font-size: 2rem;">📂</div>
+                        <p>点击或拖拽上传ZIP文件</p>
+                    </div>
+                    <input type="file" id="gt_file" accept=".zip" style="display: none;">
+                    
+                    <button class="btn btn-primary" id="gt_upload_btn" style="margin-top: 15px; width: 100%;">
+                        上传Ground Truth
+                    </button>
+                    
+                    <div id="gt_status"></div>
+                </div>
+                
+                <!-- 跟踪结果上传 -->
+                <div class="card">
+                    <h2>📁 跟踪结果上传</h2>
+                    
+                    <div class="form-group">
+                        <label>上传模式</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="tr_mode" value="single" checked>
+                                单算法单数据集
+                            </label>
+                            <label>
+                                <input type="radio" name="tr_mode" value="single_tracker">
+                                单算法多数据集
+                            </label>
+                            <label>
+                                <input type="radio" name="tr_mode" value="batch">
+                                多算法多数据集
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="tr_single_fields">
+                        <div class="form-group">
+                            <label>算法名称 <span style="color: var(--danger);">*</span></label>
+                            <input type="text" id="tr_tracker_name" placeholder="例如: SiamFC">
+                        </div>
+                        <div class="form-group" id="tr_dataset_field">
+                            <label>数据集名称 <span style="color: var(--danger);">*</span></label>
+                            <input type="text" id="tr_dataset_name" placeholder="例如: UAV123">
+                        </div>
+                    </div>
+                    
+                    <div id="tr_mode_hint" class="alert alert-info" style="margin-bottom: 15px; display: none;"></div>
+                    
+                    <div class="upload-area" id="tr_upload_area">
+                        <div style="font-size: 2rem;">📂</div>
+                        <p>点击或拖拽上传ZIP文件</p>
+                    </div>
+                    <input type="file" id="tr_file" accept=".zip" style="display: none;">
+                    
+                    <button class="btn btn-primary" id="tr_upload_btn" style="margin-top: 15px; width: 100%;">
+                        上传跟踪结果
+                    </button>
+                    
+                    <div id="tr_status"></div>
+                </div>
+            </div>
+            
+            <!-- 属性配置上传 -->
+            <div class="card">
+                <h2>🏷️ 属性配置上传（可选，用于属性评测和雷达图）</h2>
+                
+                <div class="form-group">
+                    <label>上传模式</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="att_mode" value="single" checked>
+                            单数据集
+                        </label>
+                        <label>
+                            <input type="radio" name="att_mode" value="batch">
+                            批量上传
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="att_single_fields">
+                    <div class="form-group">
+                        <label>数据集名称 <span style="color: var(--danger);">*</span></label>
+                        <input type="text" id="att_dataset_name" placeholder="例如: UAV123">
+                    </div>
+                    <div class="form-group">
+                        <label>属性名称（逗号分隔） <span style="color: var(--danger);">*</span></label>
+                        <input type="text" id="att_names" placeholder="例如: IV,SV,OCC,DEF,MB,FM,IPR,OPR,OV,BC,LR">
+                    </div>
+                </div>
+                
+                <div class="upload-area" id="att_upload_area">
+                    <div style="font-size: 2rem;">📂</div>
+                    <p>点击或拖拽上传ZIP文件</p>
+                </div>
+                <input type="file" id="att_file" accept=".zip" style="display: none;">
+                
+                <button class="btn btn-primary" id="att_upload_btn" style="margin-top: 15px;">
+                    上传属性配置
+                </button>
+                
+                <div id="att_status"></div>
+            </div>
+            
+            <!-- 数据状态 -->
+            <div class="card">
+                <h2>📋 当前数据状态</h2>
+                <div id="data_status">
+                    <p style="color: var(--text-secondary);">暂无数据</p>
+                </div>
+                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-warning" id="clear_memory_btn">
+                        🔄 清空内存数据（保留存档）
+                    </button>
+                    <button class="btn btn-danger" id="clear_all_btn">
+                        🗑️ 清空所有数据（含存档）
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 评测 -->
+        <div id="evaluate" class="tab-content">
+            <!-- 单数据集评测 -->
+            <div class="card">
+                <h2>⚙️ 单数据集评测</h2>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>选择数据集</label>
+                        <select id="eval_dataset">
+                            <option value="">-- 请先上传数据 --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>评测方法</label>
+                        <select id="eval_method">
+                            <option value="otb">OTB方法</option>
+                            <option value="ortrack">ORTrack方法</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>选择算法（不选则评测全部）</label>
+                    <div id="tracker_checkboxes" class="checkbox-group">
+                        <p style="color: var(--text-secondary);">请先选择数据集</p>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" id="run_eval_btn" style="width: 100%;">
+                    🚀 运行评测
+                </button>
+                
+                <div id="eval_status"></div>
+            </div>
+            
+            <!-- 批量评测 -->
+            <div class="card">
+                <h2>📦 批量评测（多数据集）</h2>
+                <p style="margin-bottom: 15px; color: var(--text-secondary);">
+                    同时评测多个数据集，自动计算每个算法在所有数据集上的平均值。
+                </p>
+                
+                <div class="form-group">
+                    <label>评测方法</label>
+                    <select id="batch_eval_method">
+                        <option value="otb">OTB方法</option>
+                        <option value="ortrack">ORTrack方法</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>选择数据集（至少选择2个）</label>
+                    <div id="batch_dataset_checkboxes" class="checkbox-group">
+                        <p style="color: var(--text-secondary);">请先上传数据</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>选择算法（不选则评测所有共有算法）</label>
+                    <div id="batch_tracker_checkboxes" class="checkbox-group">
+                        <p style="color: var(--text-secondary);">请先选择数据集</p>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" id="run_batch_eval_btn" style="width: 100%;">
+                    🚀 运行批量评测
+                </button>
+                
+                <div id="batch_eval_status"></div>
+            </div>
+            
+            <!-- 单数据集评测结果 -->
+            <div class="card" id="eval_results_card" style="display: none;">
+                <h2>📊 总体评测结果 <span style="font-size: 0.8rem; color: var(--text-secondary);">(点击列头排序)</span></h2>
+                <div id="eval_results"></div>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-success" id="download_excel_btn">
+                        📥 下载Excel结果
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card" id="attr_results_card" style="display: none;">
+                <h2>🏷️ 属性评测结果 <span style="font-size: 0.8rem; color: var(--text-secondary);">(点击列头排序)</span></h2>
+                
+                <div class="form-group">
+                    <label>选择显示指标</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="attr_metric" value="auc" checked>
+                            AUC (成功率)
+                        </label>
+                        <label>
+                            <input type="radio" name="attr_metric" value="precision_20">
+                            Precision@20 (精度)
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="attr_results"></div>
+            </div>
+            
+            <!-- 批量评测结果 -->
+            <div class="card" id="batch_results_card" style="display: none;">
+                <h2>📦 批量评测结果 - 平均值汇总 <span style="font-size: 0.8rem; color: var(--text-secondary);">(点击列头排序)</span></h2>
+                <div id="batch_avg_results"></div>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-success" id="download_batch_excel_btn">
+                        📥 下载批量评测Excel
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card" id="batch_detail_card" style="display: none;">
+                <h2>📊 各数据集详细结果</h2>
+                <div id="batch_detail_results"></div>
+            </div>
+        </div>
+        
+        <!-- 可视化 -->
+        <div id="visualize" class="tab-content">
+            <div class="card">
+                <h2>📈 图表配置</h2>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>图表类型</label>
+                        <select id="plot_type">
+                            <option value="success">成功率曲线</option>
+                            <option value="precision">精度曲线</option>
+                            <option value="norm_precision">归一化精度曲线（仅ORTrack）</option>
+                            <option value="attr_success">属性成功率曲线</option>
+                            <option value="attr_precision">属性精度曲线</option>
+                            <option value="radar">雷达图</option>
+                            <option value="iou_curve">IoU曲线对比（单序列）</option>
+                            <option value="center_error_curve">中心误差曲线对比（单序列）</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>显示算法数量</label>
+                        <div class="range-container">
+                            <input type="range" id="rank_num" min="1" max="30" value="10">
+                            <span id="rank_num_val">10</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>图例字体大小</label>
+                    <div class="range-container">
+                        <input type="range" id="legend_fontsize" min="6" max="20" value="10">
+                        <span id="legend_fontsize_val">10</span>
+                    </div>
+                </div>
+                
+                <!-- 属性选择（属性图用） -->
+                <div class="form-group" id="attr_select_group" style="display: none;">
+                    <label>选择属性</label>
+                    <select id="attr_select">
+                        <option value="">-- 请先进行评测 --</option>
+                    </select>
+                </div>
+                
+                <!-- 雷达图配置 -->
+                <div id="radar_config" style="display: none;">
+                    <div class="form-group">
+                        <label>选择要显示的属性（至少选择3个）</label>
+                        <div id="radar_attr_checkboxes" class="checkbox-group">
+                            <p style="color: var(--text-secondary);">请先进行评测</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>评测指标</label>
+                        <select id="radar_metric">
+                            <option value="auc">AUC</option>
+                            <option value="precision_20">Precision@20</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- IoU曲线配置 -->
+                <div id="iou_config" style="display: none;">
+                    <div class="form-group">
+                        <label>选择视频序列</label>
+                        <select id="seq_select">
+                            <option value="">-- 请先进行评测 --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>选择要对比的算法</label>
+                        <div id="iou_tracker_checkboxes" class="checkbox-group">
+                            <p style="color: var(--text-secondary);">请先进行评测</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 自定义颜色配置 -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="enable_custom_colors"> 
+                        启用自定义算法颜色
+                    </label>
+                </div>
+                
+                <div id="custom_colors_config" style="display: none;">
+                    <div class="form-group">
+                        <label>为每个算法选择颜色</label>
+                        <div id="tracker_color_pickers" class="color-picker-group">
+                            <p style="color: var(--text-secondary);">请先进行评测</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" id="generate_plot_btn" style="width: 100%;">
+                    🎨 生成图表
+                </button>
+                
+                <div id="plot_status"></div>
+            </div>
+            
+            <div class="card" id="plot_result_card" style="display: none;">
+                <h2>📊 图表结果</h2>
+                <div class="plot-container" id="plot_container"></div>
+                <button class="btn btn-success" id="download_plot_btn" style="margin-top: 15px;">
+                    💾 下载图表
+                </button>
+            </div>
+        </div>
+        
+        <!-- 绘制跟踪框 -->
+        <div id="drawbox" class="tab-content">
+            <div class="card">
+                <h2>🖼️ 跟踪框绘制配置</h2>
+                <p style="margin-bottom: 20px; color: var(--text-secondary);">
+                    将跟踪结果绘制到原始图像上，生成带有跟踪框的可视化图像。支持批量选择多个算法和序列。
+                </p>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>选择数据集</label>
+                        <select id="draw_dataset">
+                            <option value="">-- 请先上传数据 --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>线条粗细</label>
+                        <div class="range-container">
+                            <input type="range" id="draw_line_width" min="1" max="5" value="2">
+                            <span id="draw_line_width_val">2</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>图像根目录（包含各序列图像的文件夹）</label>
+                    <input type="text" id="draw_image_path" placeholder="例如: /path/to/UAV123/data_seq/UAV123">
+                    <small style="color: var(--text-secondary);">目录结构应为: 根目录/序列名/图像文件</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>输出目录（绘制结果保存位置）</label>
+                    <input type="text" id="draw_output_path" placeholder="例如: /path/to/output">
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="draw_gt" checked>
+                        绘制Ground Truth (绿色)
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>选择要绘制的算法</label>
+                    <div id="draw_tracker_checkboxes" class="checkbox-group">
+                        <p style="color: var(--text-secondary);">请先选择数据集</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>选择要绘制的序列</label>
+                    <div style="margin-bottom: 10px;">
+                        <button class="btn btn-primary" id="draw_select_all_seq" style="padding: 6px 12px; font-size: 0.85rem;">全选</button>
+                        <button class="btn btn-primary" id="draw_deselect_all_seq" style="padding: 6px 12px; font-size: 0.85rem;">取消全选</button>
+                    </div>
+                    <div id="draw_seq_checkboxes" class="checkbox-group" style="max-height: 300px; overflow-y: auto;">
+                        <p style="color: var(--text-secondary);">请先选择数据集</p>
+                    </div>
+                </div>
+                
+                <!-- 自定义颜色 -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="draw_enable_custom_colors"> 
+                        自定义算法颜色
+                    </label>
+                </div>
+                
+                <div id="draw_custom_colors_config" style="display: none;">
+                    <div class="form-group">
+                        <label>为每个算法选择颜色</label>
+                        <div id="draw_tracker_color_pickers" class="color-picker-group">
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" id="draw_bbox_btn" style="width: 100%;">
+                    🎨 开始绘制
+                </button>
+                
+                <div id="draw_status"></div>
+            </div>
+            
+            <div class="card" id="draw_result_card" style="display: none;">
+                <h2>✅ 绘制结果</h2>
+                <div id="draw_results"></div>
+            </div>
+        </div>
+        
+        <!-- 导出 -->
+        <div id="export" class="tab-content">
+            <div class="card">
+                <h2>💾 导出评测结果</h2>
+                
+                <p style="margin-bottom: 20px; color: var(--text-secondary);">
+                    导出将生成包含所有图表（成功率图、精度图、属性图）和JSON格式结果数据的ZIP压缩包。
+                </p>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>显示算法数量</label>
+                        <div class="range-container">
+                            <input type="range" id="export_rank_num" min="1" max="30" value="10">
+                            <span id="export_rank_num_val">10</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>图例字体大小</label>
+                        <div class="range-container">
+                            <input type="range" id="export_legend_fontsize" min="6" max="20" value="10">
+                            <span id="export_legend_fontsize_val">10</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" id="export_btn" style="width: 100%;">
+                    📦 导出所有结果
+                </button>
+                
+                <div id="export_status"></div>
+            </div>
+        </div>
+        
+        <!-- 帮助 -->
+        <div id="help" class="tab-content">
+            <div class="card">
+                <h2>📖 使用指南</h2>
+                
+                <div class="help-section">
+                    <h3>1. Ground Truth文件格式</h3>
+                    <p>每个视频序列对应一个txt文件，每行是一帧的标注框：</p>
+                    <pre>x,y,w,h
+x,y,w,h
+...</pre>
+                    <p style="margin-top: 10px;">其中 x,y 是左上角坐标，w,h 是宽度和高度。</p>
+                </div>
+                
+                <div class="help-section">
+                    <h3>2. 跟踪结果文件格式</h3>
+                    <p>与Ground Truth格式相同，每个序列一个txt文件。</p>
+                </div>
+                
+                <div class="help-section">
+                    <h3>3. 属性文件格式</h3>
+                    <p>每个视频序列对应一个txt文件，内容是0/1组成的数组，表示是否包含对应属性：</p>
+                    <pre>1,0,1,0,1,1,0,0,1,0,0</pre>
+                    <p style="margin-top: 10px;">位置顺序与属性名称列表一致。</p>
+                </div>
+                
+                <div class="help-section">
+                    <h3>4. 批量上传目录结构</h3>
+                    
+                    <h4 style="margin: 15px 0 10px;">Ground Truth批量上传：</h4>
+                    <pre>upload.zip/
+├── UAV123/
+│   ├── bike1.txt
+│   ├── bike2.txt
+│   └── ...
+├── DTB70/
+│   ├── Animal1.txt
+│   └── ...
+└── ...</pre>
+                    
+                    <h4 style="margin: 15px 0 10px;">跟踪结果 - 单算法多数据集上传：</h4>
+                    <pre>upload.zip/
+├── UAV123/
+│   ├── bike1.txt
+│   ├── building1.txt
+│   └── ...
+├── DTB70/
+│   ├── Animal1.txt
+│   └── ...
+└── ...</pre>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                        适合新增单个算法的结果，需要在表单中填写算法名称
+                    </p>
+                    
+                    <h4 style="margin: 15px 0 10px;">跟踪结果 - 多算法多数据集上传：</h4>
+                    <pre>upload.zip/
+├── SiamFC/
+│   ├── UAV123/
+│   │   ├── bike1.txt
+│   │   └── ...
+│   └── DTB70/
+│       └── ...
+├── DiMP/
+│   └── ...
+└── ...</pre>
+                    
+                    <h4 style="margin: 15px 0 10px;">属性配置批量上传：</h4>
+                    <pre>upload.zip/
+├── UAV123/
+│   ├── att_info.txt    # 内容: IV,SV,OCC,DEF,MB,...
+│   ├── bike1.txt       # 内容: 1,0,1,0,...
+│   └── ...
+└── ...</pre>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📊 OTB与ORTrack方法对比</h2>
+                
+                <table>
+                    <tr>
+                        <th>方面</th>
+                        <th>OTB方法</th>
+                        <th>ORTrack方法</th>
+                    </tr>
+                    <tr>
+                        <td>主要指标</td>
+                        <td>AUC, Precision@20</td>
+                        <td>AUC, Precision@20, Norm Precision@20, OP50, OP75</td>
+                    </tr>
+                    <tr>
+                        <td>归一化精度</td>
+                        <td>无</td>
+                        <td>有（除以目标尺寸）</td>
+                    </tr>
+                    <tr>
+                        <td>结果范围</td>
+                        <td>0~1（比例）</td>
+                        <td>0~100（百分比）</td>
+                    </tr>
+                    <tr>
+                        <td>IoU计算</td>
+                        <td colspan="2">完全相同：intersection / (areaA + areaB - intersection)</td>
+                    </tr>
+                    <tr>
+                        <td>中心计算</td>
+                        <td colspan="2">完全相同：x + (w-1)/2, y + (h-1)/2</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h2>🎯 支持的数据集</h2>
+                <ul style="margin-left: 20px; line-height: 2;">
+                    <li>UAV123 / UAV123@10fps</li>
+                    <li>VisDrone</li>
+                    <li>DTB70</li>
+                    <li>UAVDT</li>
+                    <li>UAVTrack112</li>
+                    <li>OTB50 / OTB100</li>
+                    <li>LaSOT</li>
+                    <li>其他符合格式的数据集</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局状态
+        let currentSessionId = null;
+        let currentMethod = 'otb';
+        let availableAttributes = [];
+        let currentPlotImage = null;
+        let evaluationData = null;  // 保存完整评测数据
+        
+        // 标签页切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+        
+        // 上传区域处理
+        function setupUploadArea(areaId, inputId) {
+            const area = document.getElementById(areaId);
+            const input = document.getElementById(inputId);
+            
+            area.addEventListener('click', () => input.click());
+            
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+            
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('dragover');
+            });
+            
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    input.files = e.dataTransfer.files;
+                    area.querySelector('p').textContent = '已选择: ' + e.dataTransfer.files[0].name;
+                }
+            });
+            
+            input.addEventListener('change', () => {
+                if (input.files.length > 0) {
+                    area.querySelector('p').textContent = '已选择: ' + input.files[0].name;
+                }
+            });
+        }
+        
+        setupUploadArea('gt_upload_area', 'gt_file');
+        setupUploadArea('tr_upload_area', 'tr_file');
+        setupUploadArea('att_upload_area', 'att_file');
+        setupUploadArea('seqlist_upload_area', 'seqlist_file');
+        
+        // 上传模式切换
+        document.querySelectorAll('input[name="seqlist_mode"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                const seqlistDsNameGroup = document.getElementById('seqlist_dataset_name_group');
+                const seqlistFileInput = document.getElementById('seqlist_file');
+                if (radio.value === 'single') {
+                    seqlistDsNameGroup.style.display = 'block';
+                    seqlistFileInput.accept = '.txt';
+                } else {
+                    seqlistDsNameGroup.style.display = 'none';
+                    seqlistFileInput.accept = '.zip';
+                }
+            });
+        });
+        
+        document.querySelectorAll('input[name="gt_mode"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                document.getElementById('gt_dataset_name_group').style.display = 
+                    radio.value === 'single' ? 'block' : 'none';
+            });
+        });
+        
+        document.querySelectorAll('input[name="tr_mode"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                document.getElementById('tr_single_fields').style.display = 
+                    radio.value === 'single' ? 'block' : 'none';
+            });
+        });
+        
+        document.querySelectorAll('input[name="att_mode"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                document.getElementById('att_single_fields').style.display = 
+                    radio.value === 'single' ? 'block' : 'none';
+            });
+        });
+        
+        // 显示消息
+        function showMessage(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+        
+        // 格式化验证结果
+        function formatVerificationResult(verification) {
+            if (!verification) return '';
+            
+            let html = '<div style="margin-top: 10px;">';
+            
+            for (const [key, result] of Object.entries(verification)) {
+                if (!result.has_list) {
+                    html += `<div class="alert alert-warning" style="font-size: 0.9rem; padding: 8px; margin: 5px 0;">
+                        <strong>${key}</strong>: ${result.message}</div>`;
+                } else if (result.verified) {
+                    html += `<div class="alert alert-success" style="font-size: 0.9rem; padding: 8px; margin: 5px 0;">
+                        <strong>${key}</strong>: ${result.message}</div>`;
+                } else {
+                    let details = `<strong>${key}</strong>: ${result.message}`;
+                    if (result.missing && result.missing.length > 0) {
+                        const missing = result.missing.length > 5 
+                            ? result.missing.slice(0, 5).join(', ') + ` ...等${result.missing.length}个`
+                            : result.missing.join(', ');
+                        details += `<br><span style="color: #e53e3e;">缺少: ${missing}</span>`;
+                    }
+                    if (result.extra && result.extra.length > 0) {
+                        const extra = result.extra.length > 5 
+                            ? result.extra.slice(0, 5).join(', ') + ` ...等${result.extra.length}个`
+                            : result.extra.join(', ');
+                        details += `<br><span style="color: #d69e2e;">多余: ${extra}</span>`;
+                    }
+                    html += `<div class="alert alert-error" style="font-size: 0.9rem; padding: 8px; margin: 5px 0;">
+                        ${details}</div>`;
+                }
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // 更新数据状态
+        async function updateStatus() {
+            try {
+                const resp = await fetch('/api/status');
+                const data = await resp.json();
+                
+                let html = '';
+                
+                // 显示已保存数据信息
+                if (data.has_saved_data && data.saved_data_info) {
+                    html += `<div class="alert alert-info" style="margin-bottom: 15px; padding: 10px;">
+                        💾 <strong>数据已自动保存</strong> - 下次启动时会自动加载
+                        <br><small>最后保存: ${data.saved_data_info.last_modified} | 文件大小: ${data.saved_data_info.size_mb} MB</small>
+                    </div>`;
+                }
+                
+                // 序列列表状态
+                const seqLists = data.sequence_lists || {};
+                const hasSeqLists = Object.keys(seqLists).length > 0;
+                
+                if (hasSeqLists) {
+                    html += '<div class="status-box" style="border-left: 3px solid var(--primary); margin-bottom: 15px; padding-left: 10px;">';
+                    html += '<h4>📋 已上传的序列列表</h4>';
+                    for (const [ds, info] of Object.entries(seqLists)) {
+                        html += `<div class="status-item"><strong>${ds}</strong>: ${info.count}个序列 ✅</div>`;
+                    }
+                    html += '</div>';
+                }
+                
+                if (data.datasets.length === 0) {
+                    html += '<p style="color: var(--text-secondary);">暂无数据，请先上传Ground Truth</p>';
+                } else {
+                    html += '<div class="status-box"><h4>📁 数据集</h4>';
+                    for (const ds of data.datasets) {
+                        const gtCount = data.gt_counts[ds] || 0;
+                        const trackers = data.trackers_by_dataset[ds] || [];
+                        const attrs = data.attributes_by_dataset[ds] || [];
+                        
+                        // 检查是否有序列列表
+                        const hasSeqList = ds in seqLists;
+                        const expectedCount = hasSeqList ? seqLists[ds].count : null;
+                        
+                        let gtStatus = '';
+                        if (hasSeqList) {
+                            if (gtCount === expectedCount) {
+                                gtStatus = ' ✅';
+                            } else {
+                                gtStatus = ` ⚠️(应为${expectedCount})`;
+                            }
+                        }
+                        
+                        html += `<div class="status-item">
+                            <strong>${ds}</strong>: ${gtCount}个序列${gtStatus}`;
+                        
+                        if (trackers.length > 0) {
+                            html += `<br>　算法: ${trackers.join(', ')}`;
+                        }
+                        
+                        if (attrs.length > 0) {
+                            html += `<br>　属性: ${attrs.join(', ')}`;
+                        }
+                        
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                }
+                
+                document.getElementById('data_status').innerHTML = html;
+                
+                // 更新评测页面的数据集下拉框
+                const evalDataset = document.getElementById('eval_dataset');
+                evalDataset.innerHTML = '<option value="">-- 请选择数据集 --</option>';
+                for (const ds of data.datasets) {
+                    evalDataset.innerHTML += `<option value="${ds}">${ds}</option>`;
+                }
+                
+                // 更新绘制页面的数据集下拉框
+                const drawDataset = document.getElementById('draw_dataset');
+                drawDataset.innerHTML = '<option value="">-- 请选择数据集 --</option>';
+                for (const ds of data.datasets) {
+                    drawDataset.innerHTML += `<option value="${ds}">${ds}</option>`;
+                }
+                
+                // 更新批量评测的数据集复选框
+                const batchDatasetCheckboxes = document.getElementById('batch_dataset_checkboxes');
+                if (data.datasets.length < 2) {
+                    batchDatasetCheckboxes.innerHTML = '<p style="color: var(--text-secondary);">需要至少2个数据集才能进行批量评测</p>';
+                } else {
+                    batchDatasetCheckboxes.innerHTML = '';
+                    for (const ds of data.datasets) {
+                        const gtCount = data.gt_counts[ds] || 0;
+                        batchDatasetCheckboxes.innerHTML += `
+                            <label>
+                                <input type="checkbox" value="${ds}" class="batch-dataset-cb">
+                                ${ds} (${gtCount}序列)
+                            </label>
+                        `;
+                    }
+                }
+                
+            } catch (e) {
+                console.error('获取状态失败:', e);
+            }
+        }
+        
+        // 序列列表上传
+        document.getElementById('seqlist_upload_btn').addEventListener('click', async () => {
+            const file = document.getElementById('seqlist_file').files[0];
+            if (!file) {
+                showMessage('seqlist_status', '请先选择文件', 'error');
+                return;
+            }
+            
+            const mode = document.querySelector('input[name="seqlist_mode"]:checked').value;
+            const datasetName = document.getElementById('seqlist_dataset_name').value.trim();
+            
+            if (mode === 'single' && !datasetName) {
+                showMessage('seqlist_status', '单数据集模式需要输入数据集名称', 'error');
+                return;
+            }
+            
+            // 验证文件类型
+            if (mode === 'single' && !file.name.endsWith('.txt')) {
+                showMessage('seqlist_status', '单数据集模式请上传TXT文件', 'error');
+                return;
+            }
+            if (mode === 'batch' && !file.name.endsWith('.zip')) {
+                showMessage('seqlist_status', '批量模式请上传ZIP文件', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('mode', mode);
+            formData.append('dataset_name', datasetName);
+            
+            const btn = document.getElementById('seqlist_upload_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>上传中...';
+            
+            try {
+                const resp = await fetch('/api/upload/sequence_list', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    let msg = `<strong>✅ ${data.message}</strong><br>`;
+                    if (data.details) {
+                        msg += '<ul style="margin: 10px 0 0 20px;">';
+                        for (const d of data.details) {
+                            msg += `<li>${d}</li>`;
+                        }
+                        msg += '</ul>';
+                    }
+                    showMessage('seqlist_status', msg, 'success');
+                    updateStatus();
+                } else {
+                    showMessage('seqlist_status', `❌ ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showMessage('seqlist_status', `❌ 上传失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '上传序列列表';
+            }
+        });
+        
+        // Ground Truth上传
+        document.getElementById('gt_upload_btn').addEventListener('click', async () => {
+            const file = document.getElementById('gt_file').files[0];
+            if (!file) {
+                showMessage('gt_status', '请先选择文件', 'error');
+                return;
+            }
+            
+            const mode = document.querySelector('input[name="gt_mode"]:checked').value;
+            const datasetName = document.getElementById('gt_dataset_name').value.trim();
+            
+            if (mode === 'single' && !datasetName) {
+                showMessage('gt_status', '单数据集模式需要输入数据集名称', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('mode', mode);
+            formData.append('dataset_name', datasetName);
+            
+            const btn = document.getElementById('gt_upload_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>上传中...';
+            
+            try {
+                const resp = await fetch('/api/upload/groundtruth', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    let msg = `<strong>✅ ${data.message}</strong><br>`;
+                    if (data.details) {
+                        msg += '<ul style="margin: 10px 0 0 20px;">';
+                        for (const d of data.details) {
+                            msg += `<li>${d}</li>`;
+                        }
+                        msg += '</ul>';
+                    }
+                    // 显示验证结果
+                    if (data.verification) {
+                        msg += formatVerificationResult(data.verification);
+                    }
+                    showMessage('gt_status', msg, data.all_verified === false ? 'warning' : 'success');
+                    updateStatus();
+                } else {
+                    showMessage('gt_status', `❌ ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showMessage('gt_status', `❌ 上传失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '上传Ground Truth';
+            }
+        });
+        
+        // 跟踪结果上传模式切换
+        document.querySelectorAll('input[name="tr_mode"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                const mode = document.querySelector('input[name="tr_mode"]:checked').value;
+                const singleFields = document.getElementById('tr_single_fields');
+                const datasetField = document.getElementById('tr_dataset_field');
+                const hintDiv = document.getElementById('tr_mode_hint');
+                
+                if (mode === 'batch') {
+                    singleFields.style.display = 'none';
+                    hintDiv.style.display = 'block';
+                    hintDiv.innerHTML = `<strong>多算法多数据集模式</strong><br>
+                        ZIP结构: <code>tracker1/dataset1/seq.txt, tracker1/dataset2/seq.txt, tracker2/dataset1/seq.txt...</code><br>
+                        适合一次性上传多个算法在多个数据集上的结果`;
+                } else if (mode === 'single_tracker') {
+                    singleFields.style.display = 'block';
+                    datasetField.style.display = 'none';
+                    hintDiv.style.display = 'block';
+                    hintDiv.innerHTML = `<strong>单算法多数据集模式</strong><br>
+                        ZIP结构: <code>dataset1/seq.txt, dataset2/seq.txt...</code><br>
+                        适合新增一个算法在多个数据集上的结果`;
+                } else {
+                    singleFields.style.display = 'block';
+                    datasetField.style.display = 'block';
+                    hintDiv.style.display = 'block';
+                    hintDiv.innerHTML = `<strong>单算法单数据集模式</strong><br>
+                        ZIP结构: <code>seq1.txt, seq2.txt...</code><br>
+                        适合上传单个算法在单个数据集上的结果`;
+                }
+            });
+        });
+        // 初始化显示提示
+        document.querySelector('input[name="tr_mode"]:checked').dispatchEvent(new Event('change'));
+        
+        // 跟踪结果上传
+        document.getElementById('tr_upload_btn').addEventListener('click', async () => {
+            const file = document.getElementById('tr_file').files[0];
+            if (!file) {
+                showMessage('tr_status', '请先选择文件', 'error');
+                return;
+            }
+            
+            const mode = document.querySelector('input[name="tr_mode"]:checked').value;
+            const trackerName = document.getElementById('tr_tracker_name').value.trim();
+            const datasetName = document.getElementById('tr_dataset_name').value.trim();
+            
+            if (mode === 'single') {
+                if (!trackerName) {
+                    showMessage('tr_status', '单算法单数据集模式需要输入算法名称', 'error');
+                    return;
+                }
+                if (!datasetName) {
+                    showMessage('tr_status', '单算法单数据集模式需要输入数据集名称', 'error');
+                    return;
+                }
+            } else if (mode === 'single_tracker') {
+                if (!trackerName) {
+                    showMessage('tr_status', '单算法多数据集模式需要输入算法名称', 'error');
+                    return;
+                }
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('mode', mode);
+            formData.append('tracker_name', trackerName);
+            formData.append('dataset_name', datasetName);
+            
+            const btn = document.getElementById('tr_upload_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>上传中...';
+            
+            try {
+                const resp = await fetch('/api/upload/tracking_results', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    let msg = `<strong>✅ ${data.message}</strong><br>`;
+                    if (data.details) {
+                        msg += '<ul style="margin: 10px 0 0 20px;">';
+                        for (const d of data.details) {
+                            msg += `<li>${d}</li>`;
+                        }
+                        msg += '</ul>';
+                    }
+                    // 显示验证结果
+                    if (data.verification) {
+                        msg += formatVerificationResult(data.verification);
+                    }
+                    showMessage('tr_status', msg, data.all_verified === false ? 'warning' : 'success');
+                    updateStatus();
+                } else {
+                    showMessage('tr_status', `❌ ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showMessage('tr_status', `❌ 上传失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '上传跟踪结果';
+            }
+        });
+        
+        // 属性配置上传
+        document.getElementById('att_upload_btn').addEventListener('click', async () => {
+            const file = document.getElementById('att_file').files[0];
+            if (!file) {
+                showMessage('att_status', '请先选择文件', 'error');
+                return;
+            }
+            
+            const mode = document.querySelector('input[name="att_mode"]:checked').value;
+            const datasetName = document.getElementById('att_dataset_name').value.trim();
+            const attNames = document.getElementById('att_names').value.trim();
+            
+            if (mode === 'single') {
+                if (!datasetName) {
+                    showMessage('att_status', '单数据集模式需要输入数据集名称', 'error');
+                    return;
+                }
+                if (!attNames) {
+                    showMessage('att_status', '单数据集模式需要输入属性名称', 'error');
+                    return;
+                }
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('mode', mode);
+            formData.append('dataset_name', datasetName);
+            formData.append('attribute_names', attNames);
+            
+            const btn = document.getElementById('att_upload_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>上传中...';
+            
+            try {
+                const resp = await fetch('/api/upload/attributes', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    let msg = `<strong>✅ ${data.message}</strong><br>`;
+                    if (data.details) {
+                        msg += '<ul style="margin: 10px 0 0 20px;">';
+                        for (const d of data.details) {
+                            msg += `<li>${d}</li>`;
+                        }
+                        msg += '</ul>';
+                    }
+                    // 显示验证结果
+                    if (data.verification) {
+                        msg += formatVerificationResult(data.verification);
+                    }
+                    showMessage('att_status', msg, data.all_verified === false ? 'warning' : 'success');
+                    updateStatus();
+                } else {
+                    showMessage('att_status', `❌ ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showMessage('att_status', `❌ 上传失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '上传属性配置';
+            }
+        });
+        
+        // 清空内存数据（保留存档）
+        document.getElementById('clear_memory_btn').addEventListener('click', async () => {
+            if (!confirm('确定要清空内存中的数据吗？\n\n已保存的数据文件会保留，下次启动时会自动加载。')) return;
+            
+            try {
+                const resp = await fetch('/api/clear', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ delete_saved: false })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showMessage('data_status', `✅ ${data.message}`, 'success');
+                    setTimeout(updateStatus, 1000);
+                }
+            } catch (e) {
+                console.error('清空失败:', e);
+            }
+        });
+        
+        // 清空所有数据（含存档）
+        document.getElementById('clear_all_btn').addEventListener('click', async () => {
+            if (!confirm('⚠️ 确定要清空所有数据吗？\n\n这将同时删除已保存的数据文件，此操作不可恢复！')) return;
+            
+            try {
+                const resp = await fetch('/api/clear', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ delete_saved: true })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showMessage('data_status', `✅ ${data.message}`, 'success');
+                    setTimeout(updateStatus, 1000);
+                }
+            } catch (e) {
+                console.error('清空失败:', e);
+            }
+        });
+        
+        // 数据集选择变化 - 更新算法列表
+        document.getElementById('eval_dataset').addEventListener('change', async () => {
+            const ds = document.getElementById('eval_dataset').value;
+            const container = document.getElementById('tracker_checkboxes');
+            
+            if (!ds) {
+                container.innerHTML = '<p style="color: var(--text-secondary);">请先选择数据集</p>';
+                return;
+            }
+            
+            try {
+                const resp = await fetch('/api/status');
+                const data = await resp.json();
+                
+                const trackers = data.trackers_by_dataset[ds] || [];
+                
+                if (trackers.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-secondary);">该数据集暂无跟踪结果</p>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                for (const trk of trackers) {
+                    container.innerHTML += `
+                        <label>
+                            <input type="checkbox" value="${trk}" checked>
+                            ${trk}
+                        </label>
+                    `;
+                }
+            } catch (e) {
+                container.innerHTML = '<p style="color: var(--danger);">加载失败</p>';
+            }
+        });
+        
+        // 运行评测
+        document.getElementById('run_eval_btn').addEventListener('click', async () => {
+            const dataset = document.getElementById('eval_dataset').value;
+            const method = document.getElementById('eval_method').value;
+            
+            if (!dataset) {
+                showMessage('eval_status', '请选择数据集', 'error');
+                return;
+            }
+            
+            const checkedBoxes = document.querySelectorAll('#tracker_checkboxes input:checked');
+            const trackers = Array.from(checkedBoxes).map(cb => cb.value);
+            
+            const btn = document.getElementById('run_eval_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>评测中...';
+            
+            try {
+                const resp = await fetch('/api/evaluate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    cache: 'no-store',
+                    body: JSON.stringify({
+                        dataset_name: dataset,
+                        tracker_names: trackers,
+                        method: method
+                    })
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    currentSessionId = data.data.session_id;
+                    currentMethod = method;
+                    availableAttributes = data.data.attribute_names || [];
+                    evaluationData = data.data;  // 保存完整数据
+                    
+                    let statusMsg = `✅ ${data.message}`;
+                    // 显示验证警告
+                    if (data.verification_warnings && data.verification_warnings.length > 0) {
+                        statusMsg += '<div style="margin-top: 10px;"><strong>⚠️ 数据完整性警告：</strong>';
+                        for (const w of data.verification_warnings) {
+                            statusMsg += `<div class="alert alert-warning" style="font-size: 0.9rem; padding: 8px; margin: 5px 0;">`;
+                            statusMsg += `<strong>${w.type}${w.tracker ? '(' + w.tracker + ')' : ''}</strong>: ${w.message}`;
+                            if (w.missing && w.missing.length > 0) {
+                                const missing = w.missing.length > 3 
+                                    ? w.missing.slice(0, 3).join(', ') + ` ...等${w.missing.length}个`
+                                    : w.missing.join(', ');
+                                statusMsg += `<br><span style="color: #e53e3e;">缺少: ${missing}</span>`;
+                            }
+                            if (w.extra && w.extra.length > 0) {
+                                const extra = w.extra.length > 3 
+                                    ? w.extra.slice(0, 3).join(', ') + ` ...等${w.extra.length}个`
+                                    : w.extra.join(', ');
+                                statusMsg += `<br><span style="color: #d69e2e;">多余: ${extra}</span>`;
+                            }
+                            statusMsg += '</div>';
+                        }
+                        statusMsg += '</div>';
+                    }
+                    showMessage('eval_status', statusMsg, data.verification_warnings ? 'warning' : 'success');
+                    
+                    // 隐藏批量评测结果
+                    document.getElementById('batch_results_card').style.display = 'none';
+                    document.getElementById('batch_detail_card').style.display = 'none';
+                    
+                    // 渲染总体结果表格
+                    renderOverallResults(data.data, method);
+                    
+                    // 渲染属性结果表格
+                    if (data.data.attribute_results && Object.keys(data.data.attribute_results).length > 0) {
+                        document.getElementById('attr_results_card').style.display = 'block';
+                        renderAttributeResults(data.data, method, 'auc');
+                    } else {
+                        document.getElementById('attr_results_card').style.display = 'none';
+                    }
+                    
+                    document.getElementById('eval_results_card').style.display = 'block';
+                    
+                    // 更新可视化页面
+                    updateVisualizationOptions();
+                    
+                } else {
+                    showMessage('eval_status', `❌ ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showMessage('eval_status', `❌ 评测失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🚀 运行评测';
+            }
+        });
+        
+        // 渲染总体结果表格
+        function renderOverallResults(data, method) {
+            const trackers = data.trackers;
+            
+            // 构建表头
+            let headers = ['算法', 'AUC', 'Precision@20'];
+            if (method === 'ortrack') {
+                headers.push('Norm Prec@20', 'OP50', 'OP75');
+            }
+            headers.push('FPS');
+            
+            // 构建数据行
+            const rows = Object.entries(trackers).map(([name, metrics]) => {
+                const row = {
+                    name: name,
+                    auc: metrics.auc,
+                    precision_20: metrics.precision_20,
+                    fps: metrics.fps
+                };
+                if (method === 'ortrack') {
+                    row.norm_precision_20 = metrics.norm_precision_20;
+                    row.success_50 = metrics.success_50;
+                    row.success_75 = metrics.success_75;
+                }
+                return row;
+            });
+            
+            // 按AUC排序
+            rows.sort((a, b) => b.auc - a.auc);
+            
+            // 生成HTML
+            let html = '<div class="table-container"><table class="sortable-table" id="overall_table">';
+            html += '<thead><tr>';
+            headers.forEach((h, i) => {
+                const sortKey = i === 0 ? 'name' : 
+                               i === 1 ? 'auc' : 
+                               i === 2 ? 'precision_20' :
+                               method === 'ortrack' ? (i === 3 ? 'norm_precision_20' : i === 4 ? 'success_50' : i === 5 ? 'success_75' : 'fps') : 'fps';
+                html += `<th data-sort="${sortKey}" class="${i === 1 ? 'sort-desc' : ''}">${h}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            rows.forEach(row => {
+                html += '<tr>';
+                html += `<td>${row.name}</td>`;
+                html += `<td>${row.auc}</td>`;
+                html += `<td>${row.precision_20}</td>`;
+                if (method === 'ortrack') {
+                    html += `<td>${row.norm_precision_20}</td>`;
+                    html += `<td>${row.success_50}</td>`;
+                    html += `<td>${row.success_75}</td>`;
+                }
+                html += `<td>${row.fps !== null ? row.fps : '-'}</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            
+            // 添加提示信息
+            if (data.has_attributes) {
+                html += `<div class="alert alert-info" style="margin-top: 15px;">
+                    ✅ 检测到属性配置，可查看下方属性评测结果。
+                    <br>可用属性: ${availableAttributes.join(', ')}
+                </div>`;
+            }
+            
+            if (data.attribute_warning) {
+                html += `<div class="alert alert-warning" style="margin-top: 15px;">
+                    ⚠️ ${data.attribute_warning.replace(/\n/g, '<br>')}
+                </div>`;
+            }
+            
+            document.getElementById('eval_results').innerHTML = html;
+            
+            // 添加排序功能
+            setupTableSorting('overall_table');
+        }
+        
+        // 渲染属性结果表格
+        function renderAttributeResults(data, method, metric) {
+            const attrResults = data.attribute_results;
+            const trackerNames = Object.keys(data.trackers);
+            const attrNames = Object.keys(attrResults);
+            
+            if (attrNames.length === 0) return;
+            
+            // 构建表头: 算法 + 各属性
+            let headers = ['算法'].concat(attrNames.map(a => `${a}(${attrResults[a].num_seqs})`));
+            
+            // 构建数据行
+            const rows = trackerNames.map(trk => {
+                const row = { name: trk };
+                attrNames.forEach(attr => {
+                    if (attrResults[attr].trackers[trk]) {
+                        row[attr] = attrResults[attr].trackers[trk][metric];
+                    } else {
+                        row[attr] = '-';
+                    }
+                });
+                // 计算平均值用于排序
+                const values = attrNames.map(a => row[a]).filter(v => v !== '-');
+                row._avg = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+                return row;
+            });
+            
+            // 按平均值排序
+            rows.sort((a, b) => b._avg - a._avg);
+            
+            // 生成HTML
+            let html = '<div class="table-container"><table class="sortable-table" id="attr_table">';
+            html += '<thead><tr>';
+            headers.forEach((h, i) => {
+                const sortKey = i === 0 ? 'name' : attrNames[i - 1];
+                html += `<th data-sort="${sortKey}">${h}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            rows.forEach(row => {
+                html += '<tr>';
+                html += `<td>${row.name}</td>`;
+                attrNames.forEach(attr => {
+                    const val = row[attr];
+                    html += `<td>${val !== '-' ? val : '-'}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            
+            document.getElementById('attr_results').innerHTML = html;
+            
+            // 添加排序功能
+            setupTableSorting('attr_table');
+        }
+        
+        // 表格排序功能
+        function setupTableSorting(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            
+            const headers = table.querySelectorAll('th[data-sort]');
+            
+            headers.forEach(header => {
+                header.addEventListener('click', () => {
+                    const sortKey = header.dataset.sort;
+                    const isAsc = header.classList.contains('sort-asc');
+                    
+                    // 清除所有排序标记
+                    headers.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+                    
+                    // 设置新的排序标记
+                    header.classList.add(isAsc ? 'sort-desc' : 'sort-asc');
+                    
+                    // 排序表格
+                    sortTable(table, sortKey, !isAsc);
+                });
+            });
+        }
+        
+        function sortTable(table, sortKey, ascending) {
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const headerCells = Array.from(table.querySelectorAll('th[data-sort]'));
+            const colIndex = headerCells.findIndex(h => h.dataset.sort === sortKey);
+            
+            rows.sort((a, b) => {
+                let aVal = a.cells[colIndex].textContent.trim();
+                let bVal = b.cells[colIndex].textContent.trim();
+                
+                // 处理数字和字符串
+                if (aVal === '-') aVal = ascending ? Infinity : -Infinity;
+                else if (!isNaN(parseFloat(aVal))) aVal = parseFloat(aVal);
+                
+                if (bVal === '-') bVal = ascending ? Infinity : -Infinity;
+                else if (!isNaN(parseFloat(bVal))) bVal = parseFloat(bVal);
+                
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    return ascending ? aVal - bVal : bVal - aVal;
+                }
+                return ascending ? String(aVal).localeCompare(String(bVal)) : String(bVal).localeCompare(String(aVal));
+            });
+            
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        // 属性指标切换
+        document.querySelectorAll('input[name="attr_metric"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (evaluationData && evaluationData.attribute_results) {
+                    renderAttributeResults(evaluationData, currentMethod, radio.value);
+                }
+            });
+        });
+        
+        // Excel下载
+        document.getElementById('download_excel_btn').addEventListener('click', async () => {
+            if (!currentSessionId) {
+                showMessage('eval_status', '请先进行评测', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('download_excel_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>生成中...';
+            
+            try {
+                const resp = await fetch('/api/export_excel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: currentSessionId })
+                });
+                
+                if (resp.ok) {
+                    const blob = await resp.blob();
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'benchmark_results.xlsx';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                } else {
+                    const data = await resp.json();
+                    showMessage('eval_status', `❌ ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showMessage('eval_status', `❌ 下载失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '📥 下载Excel结果';
+            }
+        });
+        
+        // ========== 批量评测功能 ==========
+        let batchSessionId = null;
+        
+        // 批量评测数据集选择变化 - 更新共有算法列表
+        document.getElementById('batch_dataset_checkboxes').addEventListener('change', async () => {
+            const checkedDatasets = document.querySelectorAll('.batch-dataset-cb:checked');
+            const datasetNames = Array.from(checkedDatasets).map(cb => cb.value);
+            
+            const container = document.getElementById('batch_tracker_checkboxes');
+            
+            if (datasetNames.length < 1) {
+                container.innerHTML = '<p style="color: var(--text-secondary);">请先选择数据集</p>';
+                return;
+            }
+            
+            try {
+                const resp = await fetch('/api/status');
+                const data = await resp.json();
+                
+                // 找出所有选中数据集的共有算法
+                let commonTrackers = null;
+                for (const ds of datasetNames) {
+                    const dsTrackers = new Set(data.trackers_by_dataset[ds] || []);
+                    if (commonTrackers === null) {
+                        commonTrackers = dsTrackers;
+                    } else {
+                        commonTrackers = new Set([...commonTrackers].filter(t => dsTrackers.has(t)));
+                    }
+                }
+                
+                if (!commonTrackers || commonTrackers.size === 0) {
+                    container.innerHTML = '<p style="color: var(--warning);">所选数据集没有共有算法</p>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                for (const trk of commonTrackers) {
+                    container.innerHTML += `
+                        <label>
+                            <input type="checkbox" value="${trk}" checked>
+                            ${trk}
+                        </label>
+                    `;
+                }
+            } catch (e) {
+                container.innerHTML = '<p style="color: var(--danger);">加载失败</p>';
+            }
+        });
+        
+        // 运行批量评测
+        document.getElementById('run_batch_eval_btn').addEventListener('click', async () => {
+            const method = document.getElementById('batch_eval_method').value;
+            
+            const checkedDatasets = document.querySelectorAll('.batch-dataset-cb:checked');
+            const datasetNames = Array.from(checkedDatasets).map(cb => cb.value);
+            
+            if (datasetNames.length < 2) {
+                showMessage('batch_eval_status', '请至少选择2个数据集', 'error');
+                return;
+            }
+            
+            const checkedTrackers = document.querySelectorAll('#batch_tracker_checkboxes input:checked');
+            const trackerNames = Array.from(checkedTrackers).map(cb => cb.value);
+            
+            const btn = document.getElementById('run_batch_eval_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>批量评测中...';
+            
+            try {
+                const resp = await fetch('/api/evaluate_batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dataset_names: datasetNames,
+                        tracker_names: trackerNames,
+                        method: method
+                    })
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    batchSessionId = data.data.session_id;
+                    showMessage('batch_eval_status', `✅ ${data.message}`, 'success');
+                    
+                    // 隐藏单独评测结果
+                    document.getElementById('eval_results_card').style.display = 'none';
+                    document.getElementById('attr_results_card').style.display = 'none';
+                    
+                    // 渲染平均值结果
+                    renderBatchAvgResults(data.data, method);
+                    
+                    // 渲染各数据集详细结果
+                    renderBatchDetailResults(data.data, method);
+                    
+                    document.getElementById('batch_results_card').style.display = 'block';
+                    document.getElementById('batch_detail_card').style.display = 'block';
+                } else {
+                    showMessage('batch_eval_status', `❌ ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showMessage('batch_eval_status', `❌ 批量评测失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🚀 运行批量评测';
+            }
+        });
+        
+        // 渲染批量评测平均值结果
+        function renderBatchAvgResults(data, method) {
+            const averages = data.averages;
+            
+            let headers = ['算法', '数据集数', '平均AUC', '平均Precision@20'];
+            if (method === 'ortrack') {
+                headers.push('平均Norm Prec@20');
+            }
+            
+            let html = '<div class="table-container"><table class="sortable-table" id="batch_avg_table">';
+            html += '<thead><tr>';
+            headers.forEach((h, i) => {
+                const sortKey = i === 0 ? 'name' : 
+                               i === 1 ? 'datasets_count' : 
+                               i === 2 ? 'avg_auc' : 
+                               i === 3 ? 'avg_precision_20' : 'avg_norm_precision_20';
+                html += `<th data-sort="${sortKey}" class="${i === 2 ? 'sort-desc' : ''}">${h}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // 按平均AUC排序
+            const sorted = Object.entries(averages).sort((a, b) => b[1].avg_auc - a[1].avg_auc);
+            
+            sorted.forEach(([name, avg]) => {
+                html += '<tr>';
+                html += `<td>${name}</td>`;
+                html += `<td>${avg.datasets_count}</td>`;
+                html += `<td>${avg.avg_auc}</td>`;
+                html += `<td>${avg.avg_precision_20}</td>`;
+                if (method === 'ortrack') {
+                    html += `<td>${avg.avg_norm_precision_20 || '-'}</td>`;
+                }
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            
+            document.getElementById('batch_avg_results').innerHTML = html;
+            setupTableSorting('batch_avg_table');
+        }
+        
+        // 渲染批量评测各数据集详细结果
+        function renderBatchDetailResults(data, method) {
+            const datasets = data.datasets;
+            
+            let html = '';
+            
+            for (const [dsName, dsSummary] of Object.entries(datasets)) {
+                html += `<div style="margin-bottom: 20px;">`;
+                html += `<h4 style="margin-bottom: 10px;">${dsName} (${dsSummary.num_sequences}序列)</h4>`;
+                
+                let headers = ['算法', 'AUC', 'Precision@20'];
+                if (method === 'ortrack') {
+                    headers.push('Norm Prec@20');
+                }
+                
+                html += '<div class="table-container"><table class="sortable-table">';
+                html += '<thead><tr>';
+                headers.forEach(h => html += `<th>${h}</th>`);
+                html += '</tr></thead><tbody>';
+                
+                const sorted = Object.entries(dsSummary.trackers).sort((a, b) => b[1].auc - a[1].auc);
+                
+                sorted.forEach(([name, metrics]) => {
+                    html += '<tr>';
+                    html += `<td>${name}</td>`;
+                    html += `<td>${metrics.auc}</td>`;
+                    html += `<td>${metrics.precision_20}</td>`;
+                    if (method === 'ortrack') {
+                        html += `<td>${metrics.norm_precision_20 || '-'}</td>`;
+                    }
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table></div>';
+                html += '</div>';
+            }
+            
+            document.getElementById('batch_detail_results').innerHTML = html;
+        }
+        
+        // 批量评测Excel下载
+        document.getElementById('download_batch_excel_btn').addEventListener('click', async () => {
+            if (!batchSessionId) {
+                showMessage('batch_eval_status', '请先进行批量评测', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('download_batch_excel_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>生成中...';
+            
+            try {
+                const resp = await fetch('/api/export_batch_excel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: batchSessionId })
+                });
+                
+                if (resp.ok) {
+                    const blob = await resp.blob();
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'batch_benchmark_results.xlsx';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                } else {
+                    const data = await resp.json();
+                    showMessage('batch_eval_status', `❌ ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showMessage('batch_eval_status', `❌ 下载失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '📥 下载批量评测Excel';
+            }
+        });
+        
+        // 更新可视化选项
+        async function updateVisualizationOptions() {
+            const attrSelect = document.getElementById('attr_select');
+            const radarCheckboxes = document.getElementById('radar_attr_checkboxes');
+            const seqSelect = document.getElementById('seq_select');
+            const iouTrackerCheckboxes = document.getElementById('iou_tracker_checkboxes');
+            const colorPickers = document.getElementById('tracker_color_pickers');
+            
+            // 更新属性选择
+            if (availableAttributes.length === 0) {
+                attrSelect.innerHTML = '<option value="">-- 无可用属性 --</option>';
+                radarCheckboxes.innerHTML = '<p style="color: var(--text-secondary);">没有可用的属性数据</p>';
+            } else {
+                attrSelect.innerHTML = '';
+                radarCheckboxes.innerHTML = '';
+                for (const attr of availableAttributes) {
+                    attrSelect.innerHTML += `<option value="${attr}">${attr}</option>`;
+                    radarCheckboxes.innerHTML += `
+                        <label>
+                            <input type="checkbox" value="${attr}" checked>
+                            ${attr}
+                        </label>
+                    `;
+                }
+            }
+            
+            // 获取状态更新序列和算法列表
+            try {
+                const resp = await fetch('/api/status');
+                const data = await resp.json();
+                
+                const dataset = document.getElementById('eval_dataset').value;
+                
+                // 更新序列选择
+                const sequences = data.sequences_by_dataset[dataset] || [];
+                seqSelect.innerHTML = '';
+                if (sequences.length === 0) {
+                    seqSelect.innerHTML = '<option value="">-- 无可用序列 --</option>';
+                } else {
+                    for (const seq of sequences) {
+                        seqSelect.innerHTML += `<option value="${seq}">${seq}</option>`;
+                    }
+                }
+                
+                // 更新算法选择（IoU曲线用）
+                const trackers = data.trackers_by_dataset[dataset] || [];
+                iouTrackerCheckboxes.innerHTML = '';
+                colorPickers.innerHTML = '';
+                
+                if (trackers.length === 0) {
+                    iouTrackerCheckboxes.innerHTML = '<p style="color: var(--text-secondary);">无可用算法</p>';
+                    colorPickers.innerHTML = '<p style="color: var(--text-secondary);">无可用算法</p>';
+                } else {
+                    // 预定义颜色
+                    const defaultColors = [
+                        '#ff0000', '#00ff00', '#0000ff', '#ff00ff', '#00ffff',
+                        '#ffa500', '#800080', '#008080', '#ff69b4', '#32cd32'
+                    ];
+                    
+                    for (let i = 0; i < trackers.length; i++) {
+                        const trk = trackers[i];
+                        const color = defaultColors[i % defaultColors.length];
+                        
+                        iouTrackerCheckboxes.innerHTML += `
+                            <label>
+                                <input type="checkbox" value="${trk}" checked>
+                                ${trk}
+                            </label>
+                        `;
+                        
+                        colorPickers.innerHTML += `
+                            <div class="color-picker-item">
+                                <input type="color" id="color_${trk}" value="${color}">
+                                <span>${trk}</span>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (e) {
+                console.error('更新可视化选项失败:', e);
+            }
+        }
+        
+        // 图表类型切换
+        document.getElementById('plot_type').addEventListener('change', () => {
+            const plotType = document.getElementById('plot_type').value;
+            
+            document.getElementById('attr_select_group').style.display = 
+                (plotType === 'attr_success' || plotType === 'attr_precision') ? 'block' : 'none';
+            
+            document.getElementById('radar_config').style.display = 
+                plotType === 'radar' ? 'block' : 'none';
+            
+            document.getElementById('iou_config').style.display = 
+                (plotType === 'iou_curve' || plotType === 'center_error_curve') ? 'block' : 'none';
+        });
+        
+        // 自定义颜色开关
+        document.getElementById('enable_custom_colors').addEventListener('change', (e) => {
+            document.getElementById('custom_colors_config').style.display = 
+                e.target.checked ? 'block' : 'none';
+        });
+        
+        // 获取自定义颜色配置
+        function getTrackerColors() {
+            if (!document.getElementById('enable_custom_colors').checked) {
+                return null;
+            }
+            
+            const colors = {};
+            const colorInputs = document.querySelectorAll('#tracker_color_pickers input[type="color"]');
+            colorInputs.forEach(input => {
+                const trackerName = input.id.replace('color_', '');
+                colors[trackerName] = input.value;
+            });
+            
+            return Object.keys(colors).length > 0 ? colors : null;
+        }
+        
+        // 滑块值显示
+        document.getElementById('rank_num').addEventListener('input', (e) => {
+            document.getElementById('rank_num_val').textContent = e.target.value;
+        });
+        document.getElementById('legend_fontsize').addEventListener('input', (e) => {
+            document.getElementById('legend_fontsize_val').textContent = e.target.value;
+        });
+        document.getElementById('export_rank_num').addEventListener('input', (e) => {
+            document.getElementById('export_rank_num_val').textContent = e.target.value;
+        });
+        document.getElementById('export_legend_fontsize').addEventListener('input', (e) => {
+            document.getElementById('export_legend_fontsize_val').textContent = e.target.value;
+        });
+        
+        // 生成图表
+        document.getElementById('generate_plot_btn').addEventListener('click', async () => {
+            if (!currentSessionId) {
+                showMessage('plot_status', '请先进行评测', 'error');
+                return;
+            }
+            
+            const plotType = document.getElementById('plot_type').value;
+            const rankNum = parseInt(document.getElementById('rank_num').value);
+            const legendFontsize = parseInt(document.getElementById('legend_fontsize').value);
+            
+            let requestData = {
+                session_id: currentSessionId,
+                rank_num: rankNum,
+                legend_fontsize: legendFontsize,
+                tracker_colors: getTrackerColors()
+            };
+            
+            // 根据图表类型设置参数
+            if (plotType === 'attr_success') {
+                requestData.plot_type = 'success';
+                requestData.attribute_name = document.getElementById('attr_select').value;
+                if (!requestData.attribute_name) {
+                    showMessage('plot_status', '请选择属性', 'error');
+                    return;
+                }
+            } else if (plotType === 'attr_precision') {
+                requestData.plot_type = 'precision';
+                requestData.attribute_name = document.getElementById('attr_select').value;
+                if (!requestData.attribute_name) {
+                    showMessage('plot_status', '请选择属性', 'error');
+                    return;
+                }
+            } else if (plotType === 'radar') {
+                requestData.plot_type = 'radar';
+                const checkedAttrs = document.querySelectorAll('#radar_attr_checkboxes input:checked');
+                requestData.radar_attributes = Array.from(checkedAttrs).map(cb => cb.value);
+                requestData.radar_metric = document.getElementById('radar_metric').value;
+                
+                if (requestData.radar_attributes.length < 3) {
+                    showMessage('plot_status', '雷达图至少需要选择3个属性', 'error');
+                    return;
+                }
+            } else if (plotType === 'iou_curve' || plotType === 'center_error_curve') {
+                requestData.plot_type = plotType;
+                requestData.seq_name = document.getElementById('seq_select').value;
+                
+                if (!requestData.seq_name) {
+                    showMessage('plot_status', '请选择视频序列', 'error');
+                    return;
+                }
+                
+                const checkedTrackers = document.querySelectorAll('#iou_tracker_checkboxes input:checked');
+                requestData.selected_trackers = Array.from(checkedTrackers).map(cb => cb.value);
+                
+                if (requestData.selected_trackers.length === 0) {
+                    showMessage('plot_status', '请至少选择一个算法', 'error');
+                    return;
+                }
+            } else {
+                requestData.plot_type = plotType;
+            }
+            
+            const btn = document.getElementById('generate_plot_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>生成中...';
+            
+            try {
+                const resp = await fetch('/api/plot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    currentPlotImage = data.image;
+                    document.getElementById('plot_container').innerHTML = 
+                        `<img src="data:image/png;base64,${data.image}" alt="评测图表">`;
+                    document.getElementById('plot_result_card').style.display = 'block';
+                    showMessage('plot_status', `✅ ${data.message}`, 'success');
+                } else {
+                    showMessage('plot_status', `❌ ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showMessage('plot_status', `❌ 生成失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🎨 生成图表';
+            }
+        });
+        
+        // 下载图表
+        document.getElementById('download_plot_btn').addEventListener('click', () => {
+            if (!currentPlotImage) return;
+            
+            const link = document.createElement('a');
+            link.href = 'data:image/png;base64,' + currentPlotImage;
+            link.download = 'benchmark_plot.png';
+            link.click();
+        });
+        
+        // 导出结果
+        document.getElementById('export_btn').addEventListener('click', async () => {
+            if (!currentSessionId) {
+                showMessage('export_status', '请先进行评测', 'error');
+                return;
+            }
+            
+            const rankNum = parseInt(document.getElementById('export_rank_num').value);
+            const legendFontsize = parseInt(document.getElementById('export_legend_fontsize').value);
+            
+            const btn = document.getElementById('export_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>导出中...';
+            
+            try {
+                const resp = await fetch('/api/export', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        rank_num: rankNum,
+                        legend_fontsize: legendFontsize
+                    })
+                });
+                
+                if (resp.ok) {
+                    const blob = await resp.blob();
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'benchmark_results.zip';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    showMessage('export_status', '✅ 导出成功', 'success');
+                } else {
+                    const data = await resp.json();
+                    showMessage('export_status', `❌ ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showMessage('export_status', `❌ 导出失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '📦 导出所有结果';
+            }
+        });
+        
+        // ========== 跟踪框绘制功能 ==========
+        
+        // 数据集选择变化 - 更新算法和序列列表
+        document.getElementById('draw_dataset').addEventListener('change', async () => {
+            const ds = document.getElementById('draw_dataset').value;
+            const trackerContainer = document.getElementById('draw_tracker_checkboxes');
+            const seqContainer = document.getElementById('draw_seq_checkboxes');
+            const colorPickers = document.getElementById('draw_tracker_color_pickers');
+            
+            if (!ds) {
+                trackerContainer.innerHTML = '<p style="color: var(--text-secondary);">请先选择数据集</p>';
+                seqContainer.innerHTML = '<p style="color: var(--text-secondary);">请先选择数据集</p>';
+                return;
+            }
+            
+            try {
+                const resp = await fetch('/api/status');
+                const data = await resp.json();
+                
+                // 更新算法列表
+                const trackers = data.trackers_by_dataset[ds] || [];
+                if (trackers.length === 0) {
+                    trackerContainer.innerHTML = '<p style="color: var(--text-secondary);">该数据集暂无跟踪结果</p>';
+                } else {
+                    const defaultColors = ['#ff0000', '#0000ff', '#ff00ff', '#00ffff', '#ffa500', 
+                                           '#800080', '#008080', '#ff69b4', '#32cd32', '#ffd700'];
+                    trackerContainer.innerHTML = '';
+                    colorPickers.innerHTML = '';
+                    
+                    trackers.forEach((trk, i) => {
+                        trackerContainer.innerHTML += `
+                            <label>
+                                <input type="checkbox" value="${trk}" checked>
+                                ${trk}
+                            </label>
+                        `;
+                        colorPickers.innerHTML += `
+                            <div class="color-picker-item">
+                                <input type="color" id="draw_color_${trk}" value="${defaultColors[i % defaultColors.length]}">
+                                <span>${trk}</span>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // 更新序列列表
+                const sequences = data.sequences_by_dataset[ds] || [];
+                if (sequences.length === 0) {
+                    seqContainer.innerHTML = '<p style="color: var(--text-secondary);">该数据集暂无序列</p>';
+                } else {
+                    seqContainer.innerHTML = '';
+                    sequences.forEach(seq => {
+                        seqContainer.innerHTML += `
+                            <label>
+                                <input type="checkbox" value="${seq}">
+                                ${seq}
+                            </label>
+                        `;
+                    });
+                }
+            } catch (e) {
+                trackerContainer.innerHTML = '<p style="color: var(--danger);">加载失败</p>';
+                seqContainer.innerHTML = '<p style="color: var(--danger);">加载失败</p>';
+            }
+        });
+        
+        // 线条粗细滑块
+        document.getElementById('draw_line_width').addEventListener('input', (e) => {
+            document.getElementById('draw_line_width_val').textContent = e.target.value;
+        });
+        
+        // 自定义颜色开关
+        document.getElementById('draw_enable_custom_colors').addEventListener('change', (e) => {
+            document.getElementById('draw_custom_colors_config').style.display = 
+                e.target.checked ? 'block' : 'none';
+        });
+        
+        // 全选/取消全选序列
+        document.getElementById('draw_select_all_seq').addEventListener('click', () => {
+            document.querySelectorAll('#draw_seq_checkboxes input[type="checkbox"]').forEach(cb => cb.checked = true);
+        });
+        document.getElementById('draw_deselect_all_seq').addEventListener('click', () => {
+            document.querySelectorAll('#draw_seq_checkboxes input[type="checkbox"]').forEach(cb => cb.checked = false);
+        });
+        
+        // 绘制跟踪框
+        document.getElementById('draw_bbox_btn').addEventListener('click', async () => {
+            const dataset = document.getElementById('draw_dataset').value;
+            const imagePath = document.getElementById('draw_image_path').value.trim();
+            const outputPath = document.getElementById('draw_output_path').value.trim();
+            const lineWidth = parseInt(document.getElementById('draw_line_width').value);
+            const drawGt = document.getElementById('draw_gt').checked;
+            
+            if (!dataset) {
+                showMessage('draw_status', '请选择数据集', 'error');
+                return;
+            }
+            if (!imagePath) {
+                showMessage('draw_status', '请输入图像根目录路径', 'error');
+                return;
+            }
+            if (!outputPath) {
+                showMessage('draw_status', '请输入输出目录路径', 'error');
+                return;
+            }
+            
+            const checkedTrackers = document.querySelectorAll('#draw_tracker_checkboxes input:checked');
+            const trackerNames = Array.from(checkedTrackers).map(cb => cb.value);
+            
+            if (trackerNames.length === 0) {
+                showMessage('draw_status', '请至少选择一个算法', 'error');
+                return;
+            }
+            
+            const checkedSeqs = document.querySelectorAll('#draw_seq_checkboxes input:checked');
+            const seqNames = Array.from(checkedSeqs).map(cb => cb.value);
+            
+            if (seqNames.length === 0) {
+                showMessage('draw_status', '请至少选择一个序列', 'error');
+                return;
+            }
+            
+            // 获取自定义颜色
+            let trackerColors = null;
+            if (document.getElementById('draw_enable_custom_colors').checked) {
+                trackerColors = {};
+                trackerNames.forEach(trk => {
+                    const colorInput = document.getElementById(`draw_color_${trk}`);
+                    if (colorInput) {
+                        trackerColors[trk] = colorInput.value;
+                    }
+                });
+            }
+            
+            const btn = document.getElementById('draw_bbox_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>绘制中...';
+            
+            try {
+                const resp = await fetch('/api/draw_bbox', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dataset_name: dataset,
+                        tracker_names: trackerNames,
+                        seq_names: seqNames,
+                        image_base_path: imagePath,
+                        output_base_path: outputPath,
+                        line_width: lineWidth,
+                        draw_gt: drawGt,
+                        tracker_colors: trackerColors
+                    })
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    showMessage('draw_status', `✅ ${data.message}`, 'success');
+                    
+                    // 显示详细结果
+                    let resultHtml = '<div class="status-box">';
+                    data.results.forEach(r => {
+                        resultHtml += `<div class="status-item">
+                            <strong>${r.seq_name}</strong>: ${r.num_frames}帧<br>
+                            算法: ${r.trackers.join(', ')}<br>
+                            输出: ${r.output_path}
+                        </div>`;
+                    });
+                    
+                    if (data.errors && data.errors.length > 0) {
+                        resultHtml += '<div style="margin-top: 10px; color: var(--warning);"><strong>警告:</strong><br>';
+                        data.errors.forEach(e => {
+                            resultHtml += `- ${e}<br>`;
+                        });
+                        resultHtml += '</div>';
+                    }
+                    
+                    resultHtml += '</div>';
+                    document.getElementById('draw_results').innerHTML = resultHtml;
+                    document.getElementById('draw_result_card').style.display = 'block';
+                } else {
+                    showMessage('draw_status', `❌ ${data.error}`, 'error');
+                    if (data.details) {
+                        let detailHtml = '<ul>';
+                        data.details.forEach(d => detailHtml += `<li>${d}</li>`);
+                        detailHtml += '</ul>';
+                        document.getElementById('draw_results').innerHTML = detailHtml;
+                        document.getElementById('draw_result_card').style.display = 'block';
+                    }
+                }
+            } catch (e) {
+                showMessage('draw_status', `❌ 绘制失败: ${e.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🎨 开始绘制';
+            }
+        });
+        
+        // 更新绘制页面的数据集下拉框
+        async function updateDrawDatasets() {
+            try {
+                const resp = await fetch('/api/status');
+                const data = await resp.json();
+                
+                const select = document.getElementById('draw_dataset');
+                select.innerHTML = '<option value="">-- 请选择数据集 --</option>';
+                data.datasets.forEach(ds => {
+                    select.innerHTML += `<option value="${ds}">${ds}</option>`;
+                });
+            } catch (e) {
+                console.error('更新绘制数据集失败:', e);
+            }
+        }
+        
+        // 初始化
+        updateStatus();
+        updateDrawDatasets();
+    </script>
+</body>
+</html>
